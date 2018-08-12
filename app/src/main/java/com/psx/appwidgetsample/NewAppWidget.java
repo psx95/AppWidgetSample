@@ -1,8 +1,10 @@
 package com.psx.appwidgetsample;
 
+import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.widget.RemoteViews;
 
@@ -26,15 +28,22 @@ public class NewAppWidget extends AppWidgetProvider {
         String dateStr = DateFormat.getTimeInstance(DateFormat.SHORT).format(new Date());
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.new_app_widget);
-        views.setTextViewText(R.id.app_widget_id, appWidgetId+"");
+        views.setTextViewText(R.id.app_widget_id, appWidgetId + "");
         views.setTextViewText(R.id.update_date, context.getResources().getString(R.string.date_count_format, count, dateStr));
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putInt(COUNT_KEY + appWidgetId, count);
         editor.apply();
         // Instruct the widget manager to update the widget
+        Intent intentUpdate = new Intent(context, NewAppWidget.class);
+        intentUpdate.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        int[] idArray = new int[]{appWidgetId};
+        intentUpdate.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, idArray);
+        PendingIntent pendingUpdate = PendingIntent.getBroadcast(context, appWidgetId, intentUpdate, PendingIntent.FLAG_UPDATE_CURRENT);
+        views.setOnClickPendingIntent(R.id.button_update, pendingUpdate);
+
         appWidgetManager.updateAppWidget(appWidgetId, views);
     }
-    
+
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         // There may be multiple widgets active, so update all of them
